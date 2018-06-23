@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="Client_main" target="1.8" />
+      <module name="Client_test" target="1.8" />
+      <module name="Model2_main" target="1.8" />
+      <module name="Model2_test" target="1.8" />
+      <module name="Model_main" target="1.8" />
+      <module name="Model_test" target="1.8" />
+      <module name="Repository_main" target="1.8" />
+      <module name="Repository_test" target="1.8" />
+      <module name="Server_main" target="1.8" />
+      <module name="Server_test" target="1.8" />
+      <module name="Services_main" target="1.8" />
+      <module name="Services_test" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
