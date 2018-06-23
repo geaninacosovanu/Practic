@@ -1,3 +1,5 @@
+package model;
+
 import java.io.Serializable;
 
 public class Rezultat implements HasId<Pair<String,Integer>>,Serializable {

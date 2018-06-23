@@ -11,6 +11,9 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Model2_test.iml" filepath="$PROJECT_DIR$/.idea/modules/Model2_test.iml" group="Model2" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Model/Model_main.iml" filepath="$PROJECT_DIR$/.idea/modules/Model/Model_main.iml" group="Model" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Model/Model_test.iml" filepath="$PROJECT_DIR$/.idea/modules/Model/Model_test.iml" group="Model" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/REST.iml" filepath="$PROJECT_DIR$/.idea/modules/REST.iml" group="REST" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/REST/REST_main.iml" filepath="$PROJECT_DIR$/.idea/modules/REST/REST_main.iml" group="REST" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/REST/REST_test.iml" filepath="$PROJECT_DIR$/.idea/modules/REST/REST_test.iml" group="REST" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Repository.iml" filepath="$PROJECT_DIR$/.idea/modules/Repository.iml" group="Repository" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Repository/Repository_main.iml" filepath="$PROJECT_DIR$/.idea/modules/Repository/Repository_main.iml" group="Repository" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Repository/Repository_test.iml" filepath="$PROJECT_DIR$/.idea/modules/Repository/Repository_test.iml" group="Repository" />

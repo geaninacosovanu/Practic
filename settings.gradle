@@ -4,4 +4,5 @@ include 'Client'
 include 'Server'
 include 'Services'
 include 'Repository'
+include 'REST'
 

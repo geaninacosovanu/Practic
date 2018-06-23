@@ -1,3 +1,5 @@
+package model;
+
 import java.io.Serializable;
 
 public class Participant implements HasId<Integer>,Serializable {
@@ -5,6 +7,11 @@ public class Participant implements HasId<Integer>,Serializable {
     private String nume;
 
     public Participant(String nume) {
+        this.nume = nume;
+    }
+
+    public Participant(Integer id, String nume) {
+        this.id = id;
         this.nume = nume;
     }
 

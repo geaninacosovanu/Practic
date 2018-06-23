@@ -1,3 +1,4 @@
+package model;
 
 import java.io.Serializable;
 
@@ -30,7 +31,7 @@ public class User implements HasId<String>,Serializable{
 
     @Override
     public String toString() {
-        return "model.User{" +
+        return "model.model.User{" +
                 "userId='" + userId + '\'' +
                 ", parola='" + parola + '\'' +
                 '}';

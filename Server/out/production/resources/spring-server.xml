@@ -3,21 +3,19 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-    <bean id="userRepo" class="UserDBRepository">
+    <bean id="userRepo" class="repository.UserDBRepository">
         <constructor-arg value="Server/src/main/resources/server.properties"/>
     </bean>
-    <!--<bean id="partRepo" class="ParticipantDBRepository">-->
-        <!--<constructor-arg value="InscriereServer/src/main/resources/server.properties"/>-->
-
-    <!--</bean>-->
+    <bean id="partRepo" class="repository.ParticipantDBRepository">
+        <constructor-arg value="hibernate.cfg.xml"/>
+    </bean>
 
     <!--<bean id="inscVal" class="validator.InscriereValidator"/>-->
 
-    <!--<bean id="inscRepo" class="repository.InscriereDBRepository">-->
-        <!--<constructor-arg ref="inscVal"/>-->
-        <!--<constructor-arg value="InscriereServer/src/main/resources/server.properties"/>-->
+    <bean id="rezultatRepo" class="repository.RezultatDBRepository">
+        <constructor-arg value="Server/src/main/resources/server.properties"/>
 
-    <!--</bean>-->
+    </bean>
 
     <!--<bean id="probaVal" class="validator.ProbaValidator"/>-->
 
@@ -28,6 +26,8 @@
     <!--</bean>-->
     <bean id="service" class="Service">
         <constructor-arg index="0" ref="userRepo"/>
+        <constructor-arg index="1" ref="partRepo"/>
+        <constructor-arg index="2" ref="rezultatRepo"/>
     </bean>
 
 
