@@ -3,11 +3,12 @@ import java.io.Serializable;
 public class Participant implements HasId<Integer>,Serializable {
     private Integer id;
     private String nume;
-    private Status status;
 
-    public Participant(String nume, Status status) {
+    public Participant(String nume) {
         this.nume = nume;
-        this.status = status;
+    }
+
+    public Participant() {
     }
 
     public String getNume() {
@@ -29,11 +30,8 @@ public class Participant implements HasId<Integer>,Serializable {
         id=integer;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
+    @Override
+    public String toString() {
+        return id + " : "+nume;
     }
 }
