@@ -5,12 +5,12 @@ import java.io.Serializable;
 public class Rezultat implements HasId<Pair<String,Integer>>,Serializable {
     private String idUser;
     private Integer idParticipant;
-    private Float nota;
+    private Float puncte;
 
     public Rezultat(String idUser, Integer idParticipant, Float nota) {
         this.idUser = idUser;
         this.idParticipant = idParticipant;
-        this.nota = nota;
+        this.puncte = nota;
     }
 
     public String getIdUser() {
@@ -30,11 +30,11 @@ public class Rezultat implements HasId<Pair<String,Integer>>,Serializable {
     }
 
     public Float getNota() {
-        return nota;
+        return puncte;
     }
 
     public void setNota(Float nota) {
-        this.nota = nota;
+        this.puncte = nota;
     }
 
     @Override

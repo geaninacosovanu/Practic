@@ -5,11 +5,15 @@ import java.io.Serializable;
 public class User implements HasId<String>,Serializable{
     private String userId;
     private String parola;
+    private String aspect;
 
-    public User(String userId, String parola) {
+    public User(String userId, String parola, String aspect) {
         this.userId = userId;
         this.parola = parola;
+        this.aspect = aspect;
     }
+
+
 
     @Override
     public String getId() {
@@ -36,4 +40,21 @@ public class User implements HasId<String>,Serializable{
                 ", parola='" + parola + '\'' +
                 '}';
     }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getAspect() {
+        return aspect;
+    }
+
+    public void setAspect(String aspect) {
+        this.aspect = aspect;
+    }
+
 }

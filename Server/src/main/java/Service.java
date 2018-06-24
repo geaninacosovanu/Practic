@@ -60,7 +60,7 @@ public class Service implements IService {
             Integer nr = rezultatRepository.getRezultate(p.getId());
             String status = null;
             if (nr == 0)
-                status = "NO RESULTS";
+                status = "NO JUMPS";
             else if (nr <= 2)
                 status = "PENDING";
             else if (nr == 3) {

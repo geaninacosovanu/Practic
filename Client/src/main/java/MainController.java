@@ -35,6 +35,8 @@ public class MainController extends UnicastRemoteObject implements IObserver, Se
     ComboBox<Participant> comboBoxParticipant;
     @FXML
     Button buttonLogout;
+    @FXML
+    Label labelAspect;
     private IService service;
     private ObservableList<ParticipantDTO> modelAllParticipanti = FXCollections.observableArrayList();
     private ObservableList<Participant> modelParticipantCombo = FXCollections.observableArrayList();
@@ -56,7 +58,7 @@ public class MainController extends UnicastRemoteObject implements IObserver, Se
     @FXML
     public void initialize() {
         initializeTable();
-
+        labelAspect.setText(user.getAspect());
     }
 
     private void initializeTable() {
