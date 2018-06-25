@@ -1,5 +1,3 @@
-
-
 import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -7,19 +5,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Service implements IService {
+    private final int nrThreaduri = 10;
     private IUserRepository userRepository;
+    private IMasinaRepository masinaRepository;
+    private ITrecereRepository trecereRepository;
     private Map<String, IObserver> loggedClients;
 
-    private final int nrThreaduri = 10;
 
-    public Service(IUserRepository userRepository) {
+    public Service(IUserRepository userRepository, IMasinaRepository masinaRepository, ITrecereRepository trecereRepository) {
         this.userRepository = userRepository;
+        this.masinaRepository = masinaRepository;
+        this.trecereRepository = trecereRepository;
         loggedClients = new ConcurrentHashMap<>();
+
     }
 
     private void notifyInscriereAdded() {
         ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
-        for(IObserver obs:loggedClients.values()){
+        for (IObserver obs : loggedClients.values()) {
             executor.execute(() -> {
                 System.out.println("Notifying client inscriere added...");
                 try {
@@ -37,17 +40,50 @@ public class Service implements IService {
     }
 
     @Override
-    public synchronized void logout(User user, IObserver client)  {
+    public synchronized void logout(User user, IObserver client) {
         loggedClients.remove(user.getId());
         System.out.println("Logout");
 
     }
 
     @Override
-    public synchronized boolean login(String username, String parola,IObserver client) {
+    public synchronized List<MasinaDTO> getMasini(Integer punct) {
+        List<Masina> all = masinaRepository.findAll();
+        List<MasinaDTO> dto = new ArrayList<>();
+        if (punct == 0) {
+            for (Masina m : all) {
+                Trecere t = trecereRepository.getLastTrecere(m.getId());
+                if (t != null)
+                    dto.add(new MasinaDTO(m, t.getPunctControl(), t.getOra()));
+            }
+        } else {
+            return trecereRepository.getMasiniByPunctControl(punct - 1);
+        }
+        return dto;
+
+    }
+
+    @Override
+    public List<Masina> getMasiniNetrecute(Integer punctControl) {
+        return trecereRepository.getMasiniNetrecute(punctControl);
+    }
+
+    @Override
+    public void add(Integer idMasina, Integer punct, String ora) {
+        trecereRepository.save(new Trecere(idMasina,punct,ora));
+        notifyInscriereAdded();
+    }
+
+    @Override
+    public synchronized boolean login(String username, String parola, IObserver client) {
         loggedClients.put(username, client);
         System.out.println("Login");
         return userRepository.exists(new User(username, parola));
+    }
+
+    @Override
+    public synchronized User getUser(String username) {
+        return userRepository.findOne(username);
     }
 //    @Override
 //    public synchronized List<ProbaDTO> getAllProba() {
@@ -63,7 +99,7 @@ public class Service implements IService {
 //    public synchronized List<ParticipantProbeDTO> getParticipanti(Integer idProba) {
 //        List<ParticipantProbeDTO> all = new LinkedList<>();
 //        List<Proba> probe;
-//        for (Participant e : inscriereRepository.getParticipantiPtProba(idProba)) {
+//        for (Masina e : inscriereRepository.getParticipantiPtProba(idProba)) {
 //            probe = new ArrayList<>();
 //            for (Proba p : inscriereRepository.getProbePtParticipant(e.getId()))
 //                probe.add(p);
@@ -75,14 +111,14 @@ public class Service implements IService {
 //
 //    @Override
 //    public synchronized void saveInscriere(String nume, Integer varsta, List<Proba> probe,boolean existent) throws InscriereServiceException {
-//        Participant p = null;
+//        Masina p = null;
 //        if (existent == false && getParticipant(nume, varsta) == null) {
 //            Integer id;
 //            Random rand = new Random();
 //            do {
 //                id = rand.nextInt(200) + 1;
 //            } while (participantRepository.findOne(id.toString()) != null);
-//            p = new Participant(id.toString(), nume, varsta);
+//            p = new Masina(id.toString(), nume, varsta);
 //            try {
 //                participantRepository.save(p);
 //            } catch (ValidationException e) {
@@ -112,7 +148,7 @@ public class Service implements IService {
 //
 //
 //
-//    public synchronized Participant getParticipant(String nume, Integer varsta) {
+//    public synchronized Masina getParticipant(String nume, Integer varsta) {
 //        return participantRepository.getParticipant(nume, varsta);
 //    }
     /*private IParticipantRepository participantRepository;
@@ -140,8 +176,8 @@ public class Service implements IService {
         return all;
     }
 
-    public List<Participant> getAllParticipant() {
-        List<Participant> all = new LinkedList<>();
+    public List<Masina> getAllParticipant() {
+        List<Masina> all = new LinkedList<>();
         participantRepository.findAll().forEach(e -> all.add(e));
         return all;
     }
@@ -156,21 +192,21 @@ public class Service implements IService {
         return all;
     }
 
-    public List<Participant> getParticipanti(Integer idProba) {
-        List<Participant> all = new LinkedList<>();
+    public List<Masina> getParticipanti(Integer idProba) {
+        List<Masina> all = new LinkedList<>();
         inscriereRepository.getParticipantiPtProba(idProba).forEach(e -> all.add(e));
         return all;
     }
 
     public void saveInscriere(String nume, Integer varsta, List<Proba> probe, boolean existent) throws ValidationException {
-        Participant p = null;
+        Masina p = null;
         if (existent == false && getParticipant(nume, varsta) == null) {
             Integer id;
             Random rand = new Random();
             do {
                 id = rand.nextInt(200) + 1;
             } while (participantRepository.findOne(id.toString()) != null);
-            p = new Participant(id.toString(), nume, varsta);
+            p = new Masina(id.toString(), nume, varsta);
             participantRepository.save(p);
 
         } else if (existent == true && getParticipant(nume, varsta) != null)
@@ -192,7 +228,7 @@ public class Service implements IService {
 
 
     }
-    public Participant getParticipant(String nume, Integer varsta) {
+    public Masina getParticipant(String nume, Integer varsta) {
         return participantRepository.getParticipant(nume, varsta);
     }*/
 }

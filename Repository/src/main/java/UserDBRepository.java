@@ -10,42 +10,42 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
-public class UserDBRepository implements IUserRepository{
+public class UserDBRepository implements IUserRepository {
     private Connection connection;
 
     public UserDBRepository(String propFile) {
-        Properties prop= new Properties();
+        Properties prop = new Properties();
         try {
             prop.load(new FileReader(new File(propFile).getAbsolutePath()));
-            JdbcUtils jdbc=new JdbcUtils(prop);
-            connection=jdbc.getConnection();
+            JdbcUtils jdbc = new JdbcUtils(prop);
+            connection = jdbc.getConnection();
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
+
     @Override
     public boolean exists(User u) {
-        String generatedPassword=null;
+        String generatedPassword = null;
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(u.getParola().getBytes());
             byte[] bytes = md.digest();
             StringBuilder sb = new StringBuilder();
-            for(int i=0; i< bytes.length ;i++)
-            {
+            for (int i = 0; i < bytes.length; i++) {
                 sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
             }
             generatedPassword = sb.toString();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        try (PreparedStatement s = connection.prepareStatement("SELECT COUNT (*) AS Nr FROM User U WHERE U.userId=? AND U.parola=?")){
-            s.setString(1,u.getId());
-            s.setString(2,generatedPassword);
-            ResultSet resultSet =s.executeQuery();
+        try (PreparedStatement s = connection.prepareStatement("SELECT COUNT (*) AS Nr FROM User U WHERE U.userId=? AND U.parola=?")) {
+            s.setString(1, u.getId());
+            s.setString(2, generatedPassword);
+            ResultSet resultSet = s.executeQuery();
             resultSet.next();
-            if(resultSet.getInt("Nr") == 0)
+            if (resultSet.getInt("Nr") == 0)
                 return false;
             return true;
         } catch (SQLException e) {
@@ -75,8 +75,16 @@ public class UserDBRepository implements IUserRepository{
     }
 
     @Override
-    public User findOne(String s) {
-        return null;
+    public User findOne(String st) {
+        try (PreparedStatement s = connection.prepareStatement("SELECT *  FROM User U WHERE U.userId=? ")) {
+            s.setString(1,st);
+            ResultSet resultSet = s.executeQuery();
+            resultSet.next();
+            return new User(resultSet.getString("userId"),resultSet.getString("parola"),Integer.parseInt(resultSet.getString("PunctControl")));
+        } catch (SQLException e) {
+            throw new RepositoryException(e.getMessage());
+        }
+
     }
 
     @Override

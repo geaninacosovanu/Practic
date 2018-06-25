@@ -1,8 +1,12 @@
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -11,47 +15,49 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Date;
 
-public class MainController extends UnicastRemoteObject  implements IObserver,Serializable {
+public class MainController extends UnicastRemoteObject implements IObserver, Serializable {
+    @FXML
+    TableView<MasinaDTO> table;
+    @FXML
+    TableColumn<MasinaDTO, Integer> tableColumnId;
+    @FXML
+    TableColumn<MasinaDTO, String> tableColumnNume;
+    @FXML
+    TableColumn<MasinaDTO, Integer> tableColumnPunctControl;
+    @FXML
+    TableColumn<MasinaDTO, String> tableColumnOra;
+
+    @FXML
+    Label labelPunctControl;
+    @FXML
+    Button buttonLogout;
+    @FXML
+    Button buttonMarcare;
+    @FXML
+    TextField textFieldOra;
+    @FXML
+    TextField textFieldMinute;
+    @FXML
+    ComboBox<Masina> comboBoxMasini;
     private IService service;
-//    private ObservableList<ProbaDTO> modelProba = FXCollections.observableArrayList();
+    private ObservableList<MasinaDTO> model = FXCollections.observableArrayList();
+    private ObservableList<Masina> modelCombo = FXCollections.observableArrayList();
     private User user;
-//    @FXML
-//    TableView<ProbaDTO> tableViewProba;
-//    @FXML
-//    TableColumn<Proba, String> tableColumnStil;
-//    @FXML
-//    TableColumn<Proba, Float> tableColumnDistanta;
-//    @FXML
-//    TableColumn<Proba, Integer> tableColumnNrParticipanti;
-//
-//    @FXML
-//    TableView<ParticipantProbeDTO> tableViewParticipant;
-//    @FXML
-//    TableColumn<Participant, String> tableColumnNume;
-//    @FXML
-//    TableColumn<Participant, Integer> tableColumnVarsta;
-//    @FXML
-//    TableColumn<Participant, String> tableColumnProbe;
-//    @FXML
-//    ListView<Proba> listViewProbe;
-//
-//    @FXML
-//    TextField textFieldNume;
-//    @FXML
-//    TextField textFieldVarsta;
-//    @FXML
-//    Button buttonInscriere;
-//
-//    @FXML
-//    CheckBox checkBoxParticipantExistent;
 
     public MainController() throws RemoteException {
     }
 
-    public void setService(IService service,User user) {
-        this.user=user;
+    public void setService(IService service, User user) {
+        this.user = user;
         this.service = service;
+
+        model = FXCollections.observableArrayList(service.getMasini(user.getPunctControl()));
+        modelCombo = FXCollections.observableArrayList(service.getMasiniNetrecute(user.getPunctControl()));
+        table.setItems(model);
+        comboBoxMasini.setItems(modelCombo);
+
 //        try {
 //            modelProba = FXCollections.observableArrayList(service.getAllProba());
 //        } catch (InscriereServiceException e) {
@@ -72,38 +78,34 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 //            probe.add(p.getProba());
 //        listViewProbe.setItems(FXCollections.observableArrayList(probe));
 //        listViewProbe.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        labelPunctControl.setText(user.getPunctControl().toString());
+
     }
 
     @FXML
     public void initialize() {
-        initializeTableProba();
-        initializeTableParticipanti();
+        initializeTableMasini();
 
     }
 
-    private void initializeTableParticipanti() {
+    private void initializeTableMasini() {
 
-//        tableColumnNume.setCellValueFactory(new PropertyValueFactory<>("participantNume"));
-//        tableColumnVarsta.setCellValueFactory(new PropertyValueFactory<>("participantVarsta"));
-//        tableColumnProbe.setCellValueFactory(new PropertyValueFactory<>("probe"));
+        tableColumnNume.setCellValueFactory(new PropertyValueFactory<>("nume"));
+        tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        tableColumnOra.setCellValueFactory(new PropertyValueFactory<>("ora"));
+        tableColumnPunctControl.setCellValueFactory(new PropertyValueFactory<>("punctControl"));
 
 
     }
 
-    private void initializeTableProba() {
-//        tableColumnStil.setCellValueFactory(new PropertyValueFactory<>("numeProba"));
-//        tableColumnDistanta.setCellValueFactory(new PropertyValueFactory<>("distantaProba"));
-//
-//        tableColumnNrParticipanti.setCellValueFactory(new PropertyValueFactory<>("nrParticipanti"));
-    }
 
     public void handleLogoutBotton(MouseEvent mouseEvent) {
         try {
-            service.logout(user,this);
+            service.logout(user, this);
             showLoginWindow(initLoginView());
             ((Node) (mouseEvent.getSource())).getScene().getWindow().hide();
         } catch (ServiceException e) {
-            ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
+            ShowMessage.showMessage(Alert.AlertType.ERROR, "Eroare", e.getMessage());
         }
 
     }
@@ -159,12 +161,20 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
     @Override
     public void rezultatAdded() {
-//        Platform.runLater(() -> {
-//            try {
-//                modelProba.setAll(service.getAllProba());
-//            } catch (InscriereServiceException e) {
-//                e.printStackTrace();
-//            }
-//        });
+        Platform.runLater(() -> {
+
+            model.setAll(service.getMasini(user.getPunctControl()));
+            modelCombo.setAll(service.getMasiniNetrecute(user.getPunctControl()));
+
+        });
+    }
+
+    public void handleMarcareButton(MouseEvent mouseEvent) {
+        Integer ora = Integer.parseInt(textFieldOra.getText());
+        Integer minute = Integer.parseInt(textFieldMinute.getText());
+        service.add(comboBoxMasini.getSelectionModel().getSelectedItem().getId(), user.getPunctControl(), ora + ":" + minute);
+        comboBoxMasini.getSelectionModel().clearSelection();
+        textFieldMinute.clear();
+        textFieldOra.clear();
     }
 }
