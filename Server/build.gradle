@@ -15,6 +15,7 @@ dependencies {
     compile project (':Repository')
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile 'org.springframework:spring-context:5.0.4.RELEASE'
+    compile 'org.dialect.hibernate:dialect.hibernate-core:5.2.10.Final'
 }
 jar {
     manifest

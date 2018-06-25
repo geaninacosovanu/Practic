@@ -10,6 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import model.User;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -45,7 +46,7 @@ public class LoginController extends UnicastRemoteObject implements  Serializabl
             loader.setLocation(getClass().getResource("/MainView.fxml"));
             BorderPane root=loader.load();
             MainController ctr = loader.getController();
-            ctr.setService(service,new User(userName,parola));
+            ctr.setService(service,service.getUser(userName));
 
             if(service.login(userName,parola,ctr)){
                 Stage dialogStage = new Stage();

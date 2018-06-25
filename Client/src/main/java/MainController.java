@@ -3,9 +3,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import model.User;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -28,11 +30,11 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 //    @FXML
 //    TableView<ParticipantProbeDTO> tableViewParticipant;
 //    @FXML
-//    TableColumn<Participant, String> tableColumnNume;
+//    TableColumn<model.Participant, String> tableColumnNume;
 //    @FXML
-//    TableColumn<Participant, Integer> tableColumnVarsta;
+//    TableColumn<model.Participant, Integer> tableColumnVarsta;
 //    @FXML
-//    TableColumn<Participant, String> tableColumnProbe;
+//    TableColumn<model.Participant, String> tableColumnProbe;
 //    @FXML
 //    ListView<Proba> listViewProbe;
 //
@@ -45,6 +47,9 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 //
 //    @FXML
 //    CheckBox checkBoxParticipantExistent;
+
+    @FXML
+    Button buttoLogout;
 
     public MainController() throws RemoteException {
     }
@@ -158,7 +163,7 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
 
     @Override
-    public void rezultatAdded() {
+    public void notificare() {
 //        Platform.runLater(() -> {
 //            try {
 //                modelProba.setAll(service.getAllProba());
