@@ -49,7 +49,7 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 //    CheckBox checkBoxParticipantExistent;
 
     @FXML
-    Button buttoLogout;
+    Button buttonLogout;
 
     public MainController() throws RemoteException {
     }
