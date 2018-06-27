@@ -8,7 +8,7 @@
 
         <property name="dialect">dialect.SQLiteDialect</property>
         <property name="connection.driver_class">org.sqlite.JDBC</property>
-        <property name="connection.url">jdbc:sqlite:C:/Users/cosov/Documents/SQLiteStudio/Model1</property>
+        <property name="connection.url">jdbc:sqlite:C:\Users\cosov\Documents\SQLiteStudio\Model5</property>
 
         <!--<property name="dialect.hibernate.hbm2ddl.auto">update</property>-->
 

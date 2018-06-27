@@ -1,12 +1,17 @@
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import model.Copil;
+import model.CopilDTO;
 import model.User;
 
 import java.io.IOException;
@@ -14,20 +19,31 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class MainController extends UnicastRemoteObject  implements IObserver,Serializable {
-    private IService service;
-//    private ObservableList<ProbaDTO> modelProba = FXCollections.observableArrayList();
-    private User user;
-//    @FXML
-//    TableView<ProbaDTO> tableViewProba;
-//    @FXML
-//    TableColumn<Proba, String> tableColumnStil;
-//    @FXML
-//    TableColumn<Proba, Float> tableColumnDistanta;
-//    @FXML
-//    TableColumn<Proba, Integer> tableColumnNrParticipanti;
-//
-//    @FXML
+public class MainController extends UnicastRemoteObject implements IObserver, Serializable {
+    @FXML
+    Button buttonLogout;
+    @FXML
+    Label labelPunctControl;
+    @FXML
+    TableView<CopilDTO> tableView;
+    @FXML
+    TableColumn<CopilDTO, String> tableColumnNume;
+    @FXML
+    TableColumn<CopilDTO, String> tableColumnOra;
+    @FXML
+    TableColumn<CopilDTO, Integer> tableColumnId;
+    @FXML
+    TableColumn<CopilDTO, Integer> tableColumnPunctControl;
+    @FXML
+    ComboBox<Copil> comboCopil;
+    @FXML
+    Button buttonAdd;
+    @FXML
+    TextField textFieldOra;
+    @FXML
+    TextField textFieldMinute;
+
+    //    @FXML
 //    TableView<ParticipantProbeDTO> tableViewParticipant;
 //    @FXML
 //    TableColumn<model.Participant, String> tableColumnNume;
@@ -47,16 +63,23 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 //
 //    @FXML
 //    CheckBox checkBoxParticipantExistent;
-
-    @FXML
-    Button buttoLogout;
+    private IService service;
+    private ObservableList<CopilDTO> model = FXCollections.observableArrayList();
+    private ObservableList<Copil> modelCombo = FXCollections.observableArrayList();
+    private User user;
 
     public MainController() throws RemoteException {
     }
 
-    public void setService(IService service,User user) {
-        this.user=user;
+    public void setService(IService service, User user) {
+        this.user = user;
         this.service = service;
+        labelPunctControl.setText("Punct control:" + user.getPunctControl());
+        model = FXCollections.observableArrayList(service.getAllCopii(user.getPunctControl()));
+        modelCombo = FXCollections.observableArrayList(service.getAllCopil(user.getPunctControl()));
+        tableView.setItems(model);
+        comboCopil.setItems(modelCombo);
+
 //        try {
 //            modelProba = FXCollections.observableArrayList(service.getAllProba());
 //        } catch (InscriereServiceException e) {
@@ -81,34 +104,26 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
     @FXML
     public void initialize() {
-        initializeTableProba();
-        initializeTableParticipanti();
-
-    }
-
-    private void initializeTableParticipanti() {
-
-//        tableColumnNume.setCellValueFactory(new PropertyValueFactory<>("participantNume"));
-//        tableColumnVarsta.setCellValueFactory(new PropertyValueFactory<>("participantVarsta"));
-//        tableColumnProbe.setCellValueFactory(new PropertyValueFactory<>("probe"));
+        initializeTableCopil();
 
 
     }
 
-    private void initializeTableProba() {
-//        tableColumnStil.setCellValueFactory(new PropertyValueFactory<>("numeProba"));
-//        tableColumnDistanta.setCellValueFactory(new PropertyValueFactory<>("distantaProba"));
-//
-//        tableColumnNrParticipanti.setCellValueFactory(new PropertyValueFactory<>("nrParticipanti"));
+
+    private void initializeTableCopil() {
+        tableColumnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        tableColumnNume.setCellValueFactory(new PropertyValueFactory<>("nume"));
+        tableColumnPunctControl.setCellValueFactory(new PropertyValueFactory<>("punctControl"));
+        tableColumnOra.setCellValueFactory(new PropertyValueFactory<>("ora"));
     }
 
     public void handleLogoutBotton(MouseEvent mouseEvent) {
         try {
-            service.logout(user,this);
+            service.logout(user, this);
             showLoginWindow(initLoginView());
             ((Node) (mouseEvent.getSource())).getScene().getWindow().hide();
         } catch (ServiceException e) {
-            ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
+            ShowMessage.showMessage(Alert.AlertType.ERROR, "Eroare", e.getMessage());
         }
 
     }
@@ -164,12 +179,21 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
     @Override
     public void notificare() {
-//        Platform.runLater(() -> {
-//            try {
-//                modelProba.setAll(service.getAllProba());
-//            } catch (InscriereServiceException e) {
-//                e.printStackTrace();
-//            }
-//        });
+        Platform.runLater(() -> {
+            model.setAll(service.getAllCopii(user.getPunctControl()));
+            modelCombo.setAll(service.getAllCopil(user.getPunctControl()));
+
+        });
+    }
+
+    public void handleAddButton(MouseEvent mouseEvent) {
+        String min=textFieldMinute.getText();
+        String ora=textFieldOra.getText();
+        Copil copil=comboCopil.getSelectionModel().getSelectedItem();
+        try{
+            service.add(copil.getId(),user.getPunctControl(),ora+":"+min);
+        }catch(ServiceException e){
+            ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
+        }
     }
 }

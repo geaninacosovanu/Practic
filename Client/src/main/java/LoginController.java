@@ -63,8 +63,8 @@ public class LoginController extends UnicastRemoteObject implements  Serializabl
             ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
 
         } catch (Exception e) {
-            //ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
-            System.out.println(e.getMessage());
+            ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
+//            System.out.println(e.getMessage());
 
         }
     }

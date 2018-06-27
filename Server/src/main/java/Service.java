@@ -1,7 +1,11 @@
-
-
+import model.Copil;
+import model.CopilDTO;
+import model.Trecere;
 import model.User;
+import repository.ICopilRepository;
+import repository.ITrecereRepository;
 import repository.IUserRepository;
+import utils.RepositoryException;
 
 import java.rmi.RemoteException;
 import java.util.*;
@@ -10,19 +14,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Service implements IService {
+    private final int nrThreaduri = 10;
     private IUserRepository userRepository;
+    private ICopilRepository copilRepository;
+    private ITrecereRepository trecereRepository;
     private Map<String, IObserver> loggedClients;
 
-    private final int nrThreaduri = 10;
 
-    public Service(IUserRepository userRepository) {
+    public Service(IUserRepository userRepository, ICopilRepository copilRepository, ITrecereRepository trecereRepository) {
         this.userRepository = userRepository;
+        this.copilRepository = copilRepository;
+        this.trecereRepository = trecereRepository;
         loggedClients = new ConcurrentHashMap<>();
+
     }
 
     private void notifica() {
         ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
-        for(IObserver obs:loggedClients.values()){
+        for (IObserver obs : loggedClients.values()) {
             executor.execute(() -> {
                 System.out.println("Notifying client...");
                 try {
@@ -40,14 +49,46 @@ public class Service implements IService {
     }
 
     @Override
-    public synchronized void logout(User user, IObserver client)  {
+    public synchronized void logout(User user, IObserver client) {
         loggedClients.remove(user.getId());
         System.out.println("Logout");
 
     }
 
     @Override
-    public synchronized boolean login(String username, String parola,IObserver client) {
+    public synchronized List<CopilDTO> getAllCopii(Integer punct) {
+        List<Copil> copii = copilRepository.findAll();
+        List<CopilDTO> dto = new ArrayList<>();
+        if (punct == 0) {
+            for (Copil c : copii) {
+                Trecere last = trecereRepository.getByCopil(c.getId());
+                if (last != null)
+                    dto.add(new CopilDTO(c, last.getPunctControl(), last.getOra()));
+            }
+        }
+        else
+            dto=trecereRepository.getCopiiByPunct(punct-1);
+        return dto;
+    }
+
+    @Override
+    public List<Copil> getAllCopil(Integer punct) {
+        return trecereRepository.getCopiiNetrecuti(punct);
+    }
+
+    @Override
+    public void add(Integer id, Integer punctControl, String s) throws ServiceException {
+        try{
+            trecereRepository.save(new Trecere(punctControl,id,s));
+            notifica();
+        }
+        catch (RepositoryException r){
+            throw new ServiceException(r.getMessage());
+        }
+    }
+
+    @Override
+    public synchronized boolean login(String username, String parola, IObserver client) {
         loggedClients.put(username, client);
         System.out.println("Login");
         return userRepository.exists(new User(username, parola));

@@ -83,10 +83,12 @@ public class UserDBRepository implements IUserRepository {
     @Override
     public User findOne(String st) {
         try (PreparedStatement s = connection.prepareStatement("SELECT *  FROM User U WHERE U.userId=? ")) {
+            User u=null;
             s.setString(1, st);
             ResultSet resultSet = s.executeQuery();
-            resultSet.next();
-            return new User(resultSet.getString("userId"), resultSet.getString("parola"));
+            if (resultSet.next())
+                u= new  User(resultSet.getString("userId"), resultSet.getString("parola"), resultSet.getInt("PunctControl"));
+            return u;
         } catch (SQLException e) {
             throw new RepositoryException(e.getMessage());
         }
