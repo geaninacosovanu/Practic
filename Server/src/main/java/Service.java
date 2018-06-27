@@ -1,5 +1,4 @@
-
-
+import model.Joc;
 import model.User;
 import repository.IUserRepository;
 
@@ -8,26 +7,49 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Service implements IService {
+    private final int nrThreaduri = 10;
     private IUserRepository userRepository;
     private Map<String, IObserver> loggedClients;
-
-    private final int nrThreaduri = 10;
+    private Map<String, IObserver> jucatoriAsteptare;
+    private List<Joc> jocuri;
 
     public Service(IUserRepository userRepository) {
         this.userRepository = userRepository;
         loggedClients = new ConcurrentHashMap<>();
+        jucatoriAsteptare = new ConcurrentHashMap<>();
+        jocuri = new ArrayList<>();
     }
 
-    private void notifica() {
+    private void notificaAsteptare(String msg, List<IObserver> u) {
         ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
-        for(IObserver obs:loggedClients.values()){
+        for (IObserver obs : u) {
             executor.execute(() -> {
                 System.out.println("Notifying client...");
                 try {
                     System.out.println("Notificare adaugata!");
-                    obs.notificare();
+                    obs.notificareAsteptare(msg);
+                } catch (ServiceException e) {
+                    System.out.println(e.getMessage());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+        executor.shutdown();
+    }
+
+    private void notificaStart(String msg, List<IObserver> u) {
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+        for (IObserver obs : u) {
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    obs.notificareAsteptare(msg);
                 } catch (ServiceException e) {
                     System.out.println(e.getMessage());
                 } catch (RemoteException e) {
@@ -40,14 +62,39 @@ public class Service implements IService {
     }
 
     @Override
-    public synchronized void logout(User user, IObserver client)  {
+    public synchronized void logout(User user, IObserver client) {
         loggedClients.remove(user.getId());
         System.out.println("Logout");
 
     }
 
     @Override
-    public synchronized boolean login(String username, String parola,IObserver client) {
+    public synchronized void start(User u, IObserver client) {
+        List<IObserver> all=new ArrayList<>();
+        if (jucatoriAsteptare.keySet().size() != 0) {
+            int i =-1;
+            String user=null;
+            int randomNum = ThreadLocalRandom.current().nextInt(0, jucatoriAsteptare.keySet().size());
+            Iterator<String> it = jucatoriAsteptare.keySet().iterator();
+            while (it.hasNext() && i<randomNum) {
+                user = it.next();
+                i++;
+            }
+
+            IObserver o =jucatoriAsteptare.remove(user);
+            jocuri.add(new Joc(u.getId(), user));
+            all.add(client);
+            all.add(o);
+            notificaStart(user+":X "+u.getId()+":O ", all);
+        } else {
+            jucatoriAsteptare.put(u.getId(),client);
+            all.add(client);
+            notificaAsteptare("Sunteti in asteptare. Veti fi notificat cand va exista un jucator!", all);
+        }
+    }
+
+    @Override
+    public synchronized boolean login(String username, String parola, IObserver client) {
         loggedClients.put(username, client);
         System.out.println("Login");
         return userRepository.exists(new User(username, parola));

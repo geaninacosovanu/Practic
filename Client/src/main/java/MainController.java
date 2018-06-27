@@ -1,9 +1,11 @@
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -50,7 +52,8 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
     @FXML
     Button buttonLogout;
-
+    @FXML
+    Label labelStatus;
     public MainController() throws RemoteException {
     }
 
@@ -81,26 +84,10 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
     @FXML
     public void initialize() {
-        initializeTableProba();
-        initializeTableParticipanti();
-
+//        labelStatus.setVisible(false);
     }
 
-    private void initializeTableParticipanti() {
 
-//        tableColumnNume.setCellValueFactory(new PropertyValueFactory<>("participantNume"));
-//        tableColumnVarsta.setCellValueFactory(new PropertyValueFactory<>("participantVarsta"));
-//        tableColumnProbe.setCellValueFactory(new PropertyValueFactory<>("probe"));
-
-
-    }
-
-    private void initializeTableProba() {
-//        tableColumnStil.setCellValueFactory(new PropertyValueFactory<>("numeProba"));
-//        tableColumnDistanta.setCellValueFactory(new PropertyValueFactory<>("distantaProba"));
-//
-//        tableColumnNrParticipanti.setCellValueFactory(new PropertyValueFactory<>("nrParticipanti"));
-    }
 
     public void handleLogoutBotton(MouseEvent mouseEvent) {
         try {
@@ -135,41 +122,25 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
         dialogStage.show();
     }
 
-//    public void handleButtonInscriere(MouseEvent mouseEvent) {
-//        String nume = textFieldNume.getText();
-//        Integer varsta = Integer.parseInt(textFieldVarsta.getText());
-//        List<Proba> probe = new ArrayList<>(listViewProbe.getSelectionModel().getSelectedItems());
-//        try {
-//            if (probe.size() == 0)
-//                ShowMessage.showMessage(Alert.AlertType.WARNING, "Warning", "Nu ati selectat nicio proba!");
-//            else if (checkBoxParticipantExistent.isSelected() == false) {
-//                service.saveInscriere(nume, varsta, probe, false);
-//            } else {
-//                service.saveInscriere(nume, varsta, probe, true);
-//            }
-//            String msg = "Participantul " + nume + " a fost inscris la probele:\n";
-//            for (Proba p : probe)
-//                msg += p.toString() + "\n";
-//            ShowMessage.showMessage(Alert.AlertType.CONFIRMATION, "Confirmation", msg);
-//            textFieldNume.clear();
-//            textFieldVarsta.clear();
-//            listViewProbe.getSelectionModel().clearSelection();
-//            checkBoxParticipantExistent.setSelected(false);
-//        } catch (InscriereServiceException e) {
-//            ShowMessage.showMessage(Alert.AlertType.ERROR, "Eroare", e.getMessage());
-//
-//        }
-//    }
+
 
 
     @Override
-    public void notificare() {
-//        Platform.runLater(() -> {
-//            try {
-//                modelProba.setAll(service.getAllProba());
-//            } catch (InscriereServiceException e) {
-//                e.printStackTrace();
-//            }
-//        });
+    public void notificareAsteptare(String msg) {
+        Platform.runLater(() -> {
+            ShowMessage.showMessage(Alert.AlertType.INFORMATION,"Information",msg);
+        });
+    }
+
+    public void handleStartButton(MouseEvent mouseEvent) {
+        service.start(user,this);
+    }
+
+    @Override
+    public void notificareStart(String semn) {
+        Platform.runLater(() -> {
+            labelStatus.setVisible(true);
+            labelStatus.setText(semn);
+        });
     }
 }

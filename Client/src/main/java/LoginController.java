@@ -44,7 +44,7 @@ public class LoginController extends UnicastRemoteObject implements  Serializabl
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/MainView.fxml"));
-            BorderPane root=loader.load();
+            BorderPane root=(BorderPane)loader.load();
             MainController ctr = loader.getController();
             ctr.setService(service,service.getUser(userName));
 
