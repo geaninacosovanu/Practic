@@ -3,8 +3,8 @@
         "-//Hibernate/Hibernate Mapping DTD//EN"
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <!--<class name="Masina" table="Masina">-->
-        <!--<id name="id" column="Id"></id>-->
-        <!--<property name="nume" column="Nume"/>-->
-    <!--</class>-->
+    <class name="model.Cuvant" table="Cuvant">
+        <id name="id" column="Id"></id>
+        <property name="cuvant" column="Cuvant"/>
+    </class>
 </hibernate-mapping>

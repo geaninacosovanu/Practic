@@ -1,6 +1,10 @@
-
-
+import model.Cuvant;
+import model.Joc;
+import model.JocUser;
 import model.User;
+import repository.ICuvantRepository;
+import repository.IJocRepository;
+import repository.IJocUserRepository;
 import repository.IUserRepository;
 
 import java.rmi.RemoteException;
@@ -8,26 +12,38 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Service implements IService {
-    private IUserRepository userRepository;
-    private Map<String, IObserver> loggedClients;
-
     private final int nrThreaduri = 10;
+    private boolean inceput = false;
+    private IUserRepository userRepository;
+    private IJocRepository jocRepository;
+    private IJocUserRepository jocUserRepository;
+    private ICuvantRepository cuvantRepository;
+    private Map<String, IObserver> loggedClients;
+    private List<IObserver> jucatori;
+    private Cuvant cuvant;
+    private Integer gresite;
+    private Joc currentJoc;
 
-    public Service(IUserRepository userRepository) {
+    public Service(IUserRepository userRepository, IJocRepository jocRepository, IJocUserRepository jocUserRepository, ICuvantRepository cuvantRepository) {
         this.userRepository = userRepository;
+        this.jocRepository = jocRepository;
+        this.jocUserRepository = jocUserRepository;
+        this.cuvantRepository = cuvantRepository;
         loggedClients = new ConcurrentHashMap<>();
     }
 
-    private void notifica() {
+    private  void notifica(Cuvant c) {
         ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
-        for(IObserver obs:loggedClients.values()){
+        for (IObserver obs : loggedClients.values()) {
             executor.execute(() -> {
                 System.out.println("Notifying client...");
                 try {
                     System.out.println("Notificare adaugata!");
-                    obs.notificare();
+                    jucatori.add(obs);
+                    obs.notificareStart(c);
                 } catch (ServiceException e) {
                     System.out.println(e.getMessage());
                 } catch (RemoteException e) {
@@ -39,15 +55,147 @@ public class Service implements IService {
         executor.shutdown();
     }
 
+    private  void notificaMutare(Cuvant c, Character litera) {
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+        for (IObserver obs : jucatori) {
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    obs.notificareMutare(c, litera);
+                } catch (ServiceException e) {
+                    System.out.println(e.getMessage());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+        executor.shutdown();
+    }
+
+    private  void notificaGresit(Character c) {
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+        for (IObserver obs : jucatori) {
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    obs.notificaGresit(c);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+        executor.shutdown();
+    }
+
+    private  void notificaPierdere() {
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+        for (IObserver obs : jucatori) {
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    obs.notificaPierdere();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+        executor.shutdown();
+    }
+
+    private  void notificaCastigare(User u) {
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+        for (IObserver obs : jucatori) {
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    obs.notificaCastigator(u);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+        executor.shutdown();
+    }
+
     @Override
-    public synchronized void logout(User user, IObserver client)  {
+    public synchronized void logout(User user, IObserver client) {
         loggedClients.remove(user.getId());
+        jucatori.remove(user);
         System.out.println("Logout");
 
     }
 
+    public synchronized void addJocJucator(String user,Integer idJoc,String litere)
+    {
+        jocUserRepository.save(new JocUser(user,idJoc,litere));
+    }
+
+    public synchronized Joc addJoc() {
+        currentJoc=jocRepository.save(new Joc(cuvant.getId()));
+        return currentJoc;
+    }
     @Override
-    public synchronized boolean login(String username, String parola,IObserver client) {
+    public synchronized boolean start() {
+        boolean in = inceput;
+        if (!inceput) {
+            List<Cuvant> all = cuvantRepository.findAll();
+            Integer randomNum = ThreadLocalRandom.current().nextInt(0, all.size());
+            cuvant = all.get(randomNum);
+
+            String s = "";
+            for (int i = 0; i < cuvant.getCuvant().length(); i++)
+                s += "_";
+            notifica(new Cuvant(cuvant.getId(), s));
+            jucatori = new ArrayList<>();
+            inceput = true;
+            gresite = 0;
+        }
+        return in;
+    }
+
+    @Override
+    public synchronized void addLitera(User user, Cuvant c, Character s) {
+        String newCuvant = "";
+        System.out.println(c.getCuvant());
+        System.out.println(cuvant.getCuvant());
+        for (int i = 0; i < c.getCuvant().length(); i++) {
+            if (s == cuvant.getCuvant().charAt(i)) {
+                newCuvant += s;
+            } else
+                newCuvant += c.getCuvant().charAt(i);
+        }
+        if (newCuvant.equals(c.getCuvant()) && gresite < 6) {
+            notificaGresit(s);
+            gresite++;
+        } else {
+            notificaMutare(new Cuvant(cuvant.getId(), newCuvant), s);
+        }
+        if (newCuvant.equals(cuvant.getCuvant()) && gresite < 6) {
+            notificaCastigare(user);
+            inceput=false;
+        }
+        if (gresite == 6) {
+            inceput=false;
+            notificaPierdere();
+        }
+//        else if (newCuvant.equals(cuvant.getCuvant()) && gresite<6)
+//            notificaCastigare(user);
+//        else if(gresite<6)
+//            notificaMutare(new Cuvant(cuvant.getId(), newCuvant), s);
+//        else
+//            notificaGresit();
+    }
+
+    @Override
+    public synchronized boolean login(String username, String parola, IObserver client) {
         loggedClients.put(username, client);
         System.out.println("Login");
         return userRepository.exists(new User(username, parola));
