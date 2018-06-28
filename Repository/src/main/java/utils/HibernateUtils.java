@@ -11,6 +11,7 @@ public class HibernateUtils {
     private HibernateUtils() {
     }
     private static void initialize(String conf) {
+        System.out.println(conf);
         final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .configure(conf)
                 .build();

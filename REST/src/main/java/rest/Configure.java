@@ -10,4 +10,10 @@ public class Configure {
     {
         return "Server/src/main/resources/server.properties";
     }
+    @Bean
+    public String conf()
+    {
+        return "Server/src/main/resources/hibernate.cfg.xml";
+    }
+
 }

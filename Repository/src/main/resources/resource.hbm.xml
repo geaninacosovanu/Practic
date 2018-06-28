@@ -3,8 +3,11 @@
         "-//Hibernate/Hibernate Mapping DTD//EN"
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
-    <!--<class name="Masina" table="Masina">-->
-        <!--<id name="id" column="Id"></id>-->
-        <!--<property name="nume" column="Nume"/>-->
-    <!--</class>-->
+    <class name="model.Joc" table="Joc">
+        <id name="id">
+            <column name="Id"/>
+            <generator class="increment"/>
+        </id>
+        <property name="punctaj" column="PunctajCastigator"/>
+    </class>
 </hibernate-mapping>

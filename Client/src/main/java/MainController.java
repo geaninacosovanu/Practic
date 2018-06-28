@@ -1,9 +1,10 @@
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -13,11 +14,15 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
+import java.util.Set;
 
 public class MainController extends UnicastRemoteObject  implements IObserver,Serializable {
     private IService service;
 //    private ObservableList<ProbaDTO> modelProba = FXCollections.observableArrayList();
     private User user;
+    @FXML
+    private Button buttonStart;
 //    @FXML
 //    TableView<ProbaDTO> tableViewProba;
 //    @FXML
@@ -51,56 +56,32 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
     @FXML
     Button buttonLogout;
 
+    @FXML
+    ListView<String> listViewParticipanti;
+
+    @FXML
+    Label labelNumere;
+
+    @FXML
+    TextField textFieldNumar;
+
+    @FXML
+    Button buttonAdd;
+
     public MainController() throws RemoteException {
     }
 
     public void setService(IService service,User user) {
         this.user=user;
         this.service = service;
-//        try {
-//            modelProba = FXCollections.observableArrayList(service.getAllProba());
-//        } catch (InscriereServiceException e) {
-//            e.printStackTrace();
-//        }
-//        tableViewProba.setItems(modelProba);
-//        tableViewProba.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-//            if (newSelection != null) {
-//                try {
-//                    tableViewParticipant.setItems(FXCollections.observableArrayList(service.getParticipanti(newSelection.getIdProba())));
-//                } catch (InscriereServiceException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//        List<Proba> probe = new ArrayList<>();
-//        for (ProbaDTO p : modelProba)
-//            probe.add(p.getProba());
-//        listViewProbe.setItems(FXCollections.observableArrayList(probe));
-//        listViewProbe.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
     @FXML
     public void initialize() {
-        initializeTableProba();
-        initializeTableParticipanti();
-
-    }
-
-    private void initializeTableParticipanti() {
-
-//        tableColumnNume.setCellValueFactory(new PropertyValueFactory<>("participantNume"));
-//        tableColumnVarsta.setCellValueFactory(new PropertyValueFactory<>("participantVarsta"));
-//        tableColumnProbe.setCellValueFactory(new PropertyValueFactory<>("probe"));
 
 
     }
 
-    private void initializeTableProba() {
-//        tableColumnStil.setCellValueFactory(new PropertyValueFactory<>("numeProba"));
-//        tableColumnDistanta.setCellValueFactory(new PropertyValueFactory<>("distantaProba"));
-//
-//        tableColumnNrParticipanti.setCellValueFactory(new PropertyValueFactory<>("nrParticipanti"));
-    }
 
     public void handleLogoutBotton(MouseEvent mouseEvent) {
         try {
@@ -162,14 +143,38 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 //    }
 
 
+
+    public void handlebuttonStart(MouseEvent mouseEvent) {
+        try {
+            service.start();
+        } catch (Exception e) {
+            ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
+        }
+    }
+
     @Override
-    public void notificare() {
-//        Platform.runLater(() -> {
-//            try {
-//                modelProba.setAll(service.getAllProba());
-//            } catch (InscriereServiceException e) {
-//                e.printStackTrace();
-//            }
-//        });
+    public void notificareParticipanti(Set<String> participanti) throws ServiceException, RemoteException {
+        Platform.runLater(() -> {
+            listViewParticipanti.setItems(FXCollections.observableArrayList(participanti));
+        });
+    }
+
+    @Override
+    public void notificareNumereProprii(List<Integer> nr) throws ServiceException, RemoteException {
+            Platform.runLater(() -> {
+                String numere = "";
+                for (Integer i:nr) numere=numere+i+" ";
+                labelNumere.setText(numere);
+
+        });
+    }
+
+    public void handleAdd(MouseEvent mouseEvent) {
+        try {
+            service.addNumar(user.getId(),Integer.parseInt(textFieldNumar.getText()));
+        } catch (Exception e) {
+            ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
+        }
+        textFieldNumar.clear();
     }
 }
