@@ -44,12 +44,11 @@ public class Service implements IService {
 
     private void notificaStart(String msg, List<IObserver> u) {
         ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
-        for (IObserver obs : u) {
             executor.execute(() -> {
                 System.out.println("Notifying client...");
                 try {
                     System.out.println("Notificare adaugata!");
-                    obs.notificareAsteptare(msg);
+                    u.get(0).notificareStart(msg,1);
                 } catch (ServiceException e) {
                     System.out.println(e.getMessage());
                 } catch (RemoteException e) {
@@ -57,7 +56,19 @@ public class Service implements IService {
                 }
             });
 
-        }
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    u.get(1).notificareStart(msg,0);
+                } catch (ServiceException e) {
+                    System.out.println(e.getMessage());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+
         executor.shutdown();
     }
 
@@ -91,6 +102,40 @@ public class Service implements IService {
             all.add(client);
             notificaAsteptare("Sunteti in asteptare. Veti fi notificat cand va exista un jucator!", all);
         }
+    }
+
+    @Override
+    public void muta(User user, Integer i, Integer j, Integer semn) {
+        for (Joc joc:jocuri){
+            if(joc.getIdUser1().equals(user.getId()) || joc.getIdUser2().equals(user.getId())){
+                Integer[][] matrix=joc.getMatrix();
+                if(matrix[i][j]==-1)
+                    matrix[i][j]=semn;
+                List<IObserver> all= new ArrayList<>();
+                all.add(loggedClients.get(joc.getIdUser1()));
+                all.add(loggedClients.get(joc.getIdUser1()));
+                notificaMutare(all,i,j,semn);
+            }
+        }
+    }
+
+    private void notificaMutare(List<IObserver> all, Integer i, Integer j,Integer semn) {
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+        for (IObserver obs : all) {
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    obs.notificareMutare(i,j,semn);
+                } catch (ServiceException e) {
+                    System.out.println(e.getMessage());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+        }
+        executor.shutdown();
     }
 
     @Override
