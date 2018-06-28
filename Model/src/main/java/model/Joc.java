@@ -3,9 +3,6 @@ package model;
 import org.omg.PortableInterceptor.INACTIVE;
 import utils.HasId;
 import utils.Status;
-
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import java.io.Serializable;
 
 public class Joc implements HasId<Integer>,Serializable {
