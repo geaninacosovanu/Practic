@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MainController extends UnicastRemoteObject implements IObserver, Serializable {
     @FXML
@@ -22,11 +24,19 @@ public class MainController extends UnicastRemoteObject implements IObserver, Se
     @FXML
     Button buttonLogout;
     @FXML
+    Button buttonGenerare;
+    @FXML
     Label labelId;
+    @FXML
+    Label labelPozitii;
+    @FXML
+    Label labelMutare;
+    boolean mutat = false;
+    private Integer pozitieCurenta;
     private IService service;
-    //    private ObservableList<ProbaDTO> modelProba = FXCollections.observableArrayList();
+    private Integer incercari;
     private User user;
-
+    private String oponent;
 
     public MainController() throws RemoteException {
     }
@@ -34,47 +44,13 @@ public class MainController extends UnicastRemoteObject implements IObserver, Se
     public void setService(IService service, User user) {
         this.user = user;
         this.service = service;
-//        try {
-//            modelProba = FXCollections.observableArrayList(service.getAllProba());
-//        } catch (InscriereServiceException e) {
-//            e.printStackTrace();
-//        }
-//        tableViewProba.setItems(modelProba);
-//        tableViewProba.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-//            if (newSelection != null) {
-//                try {
-//                    tableViewParticipant.setItems(FXCollections.observableArrayList(service.getParticipanti(newSelection.getIdProba())));
-//                } catch (InscriereServiceException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-//        List<Proba> probe = new ArrayList<>();
-//        for (ProbaDTO p : modelProba)
-//            probe.add(p.getProba());
-//        listViewProbe.setItems(FXCollections.observableArrayList(probe));
-//        listViewProbe.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
     }
 
     @FXML
     public void initialize() {
     }
 
-    private void initializeTableParticipanti() {
-
-//        tableColumnNume.setCellValueFactory(new PropertyValueFactory<>("participantNume"));
-//        tableColumnVarsta.setCellValueFactory(new PropertyValueFactory<>("participantVarsta"));
-//        tableColumnProbe.setCellValueFactory(new PropertyValueFactory<>("probe"));
-
-
-    }
-
-    private void initializeTableProba() {
-//        tableColumnStil.setCellValueFactory(new PropertyValueFactory<>("numeProba"));
-//        tableColumnDistanta.setCellValueFactory(new PropertyValueFactory<>("distantaProba"));
-//
-//        tableColumnNrParticipanti.setCellValueFactory(new PropertyValueFactory<>("nrParticipanti"));
-    }
 
     public void handleLogoutBotton(MouseEvent mouseEvent) {
         try {
@@ -109,42 +85,19 @@ public class MainController extends UnicastRemoteObject implements IObserver, Se
         dialogStage.show();
     }
 
-//    public void handleButtonInscriere(MouseEvent mouseEvent) {
-//        String nume = textFieldNume.getText();
-//        Integer varsta = Integer.parseInt(textFieldVarsta.getText());
-//        List<Proba> probe = new ArrayList<>(listViewProbe.getSelectionModel().getSelectedItems());
-//        try {
-//            if (probe.size() == 0)
-//                ShowMessage.showMessage(Alert.AlertType.WARNING, "Warning", "Nu ati selectat nicio proba!");
-//            else if (checkBoxParticipantExistent.isSelected() == false) {
-//                service.saveInscriere(nume, varsta, probe, false);
-//            } else {
-//                service.saveInscriere(nume, varsta, probe, true);
-//            }
-//            String msg = "Participantul " + nume + " a fost inscris la probele:\n";
-//            for (Proba p : probe)
-//                msg += p.toString() + "\n";
-//            ShowMessage.showMessage(Alert.AlertType.CONFIRMATION, "Confirmation", msg);
-//            textFieldNume.clear();
-//            textFieldVarsta.clear();
-//            listViewProbe.getSelectionModel().clearSelection();
-//            checkBoxParticipantExistent.setSelected(false);
-//        } catch (InscriereServiceException e) {
-//            ShowMessage.showMessage(Alert.AlertType.ERROR, "Eroare", e.getMessage());
-//
-//        }
-//    }
-
 
     @Override
-    public void notificare() {
-//        Platform.runLater(() -> {
-//            try {
-//                modelProba.setAll(service.getAllProba());
-//            } catch (InscriereServiceException e) {
-//                e.printStackTrace();
-//            }
-//        });
+    public void notificareMutare(Integer pozitie, String[] joc) throws ServiceException, RemoteException {
+        Platform.runLater(() -> {
+            labelMutare.setText(String.valueOf(pozitie));
+            String s = "";
+            for (int i = 0; i < 9; i++)
+                if (joc[i] == null)
+                    s += "_ ";
+                else
+                    s = s + joc[i] + " ";
+            labelPozitii.setText(s);
+        });
     }
 
     @Override
@@ -157,11 +110,25 @@ public class MainController extends UnicastRemoteObject implements IObserver, Se
     @Override
     public void notificareStart(String id) throws ServiceException, RemoteException {
         Platform.runLater(() -> {
+            incercari = 0;
+            oponent=id;
             labelId.setText(id);
+            labelPozitii.setText("_ _ _ _ _ _ _ _ _");
+            pozitieCurenta = -1;
         });
     }
 
     public void handleStart(MouseEvent mouseEvent) {
         service.start(user, this);
+    }
+
+    public void handleGenerare(MouseEvent mouseEvent) {
+        //if (service.canMutare(user,oponent)) {
+            if (incercari < 3) {
+                int randomNum = ThreadLocalRandom.current().nextInt(1, 4);
+                pozitieCurenta = service.addPozitie(user, randomNum, pozitieCurenta);
+            } else
+                ShowMessage.showMessage(Alert.AlertType.INFORMATION, "Info", "Jocul s-a terminat!");
+        //} else ShowMessage.showMessage(Alert.AlertType.ERROR, "Eroare", "Trebuie sa mute si celalalt!");
     }
 }

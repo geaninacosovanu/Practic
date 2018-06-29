@@ -18,6 +18,9 @@
       <AnchorPane prefHeight="353.0" prefWidth="600.0" BorderPane.alignment="CENTER">
          <children>
             <Button fx:id="buttonStart" layoutX="506.0" layoutY="14.0" mnemonicParsing="false" onMouseClicked="#handleStart" text="Start" />
+            <Button fx:id="buttonGenerare" layoutX="501.0" layoutY="67.0" mnemonicParsing="false" onMouseClicked="#handleGenerare" text="Generare" />
+            <Label fx:id="labelPozitii" layoutX="52.0" layoutY="39.0" prefHeight="47.0" prefWidth="178.0" />
+            <Label fx:id="labelMutare" layoutX="59.0" layoutY="92.0" prefHeight="17.0" prefWidth="55.0" />
          </children></AnchorPane>
    </center>
 </BorderPane>
