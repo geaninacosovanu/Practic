@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 public class Service implements IService {
     private IUserRepository userRepository;
     private Map<String, IObserver> loggedClients;
+    private Map<String, IObserver> players=new ConcurrentHashMap<>();
+    private boolean started=false;
 
     private final int nrThreaduri = 10;
 
@@ -39,11 +41,72 @@ public class Service implements IService {
         executor.shutdown();
     }
 
+    private void notificaAsteptare(IObserver client){
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+            executor.execute(() -> {
+                System.out.println("Notifying client...");
+                try {
+                    System.out.println("Notificare adaugata!");
+                    client.notificareAsteptare("Un joc e inceput!");
+                } catch (ServiceException e) {
+                    System.out.println(e.getMessage());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+
+
+        executor.shutdown();
+    }
+    private void notificaStart(IObserver client, String id){
+        ExecutorService executor = Executors.newFixedThreadPool(nrThreaduri);
+        executor.execute(() -> {
+            System.out.println("Notifying client...");
+            try {
+                System.out.println("Notificare adaugata!");
+                client.notificareStart(id);
+            } catch (ServiceException e) {
+                System.out.println(e.getMessage());
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        });
+
+
+        executor.shutdown();
+    }
+
     @Override
     public synchronized void logout(User user, IObserver client)  {
         loggedClients.remove(user.getId());
         System.out.println("Logout");
 
+    }
+
+    @Override
+    public synchronized void start(User user, IObserver client) {
+        if(players.keySet().size()<2 && started==false){
+            players.put(user.getId(),client);
+        }
+        if(players.keySet().size()==2 && started==false){
+            started=true;
+            Iterator<IObserver> iterator = players.values().iterator();
+            iterator.hasNext() ;
+            IObserver o1 = iterator.next();
+            iterator.hasNext() ;
+            IObserver o2 = iterator.next();
+            Iterator<String> it = players.keySet().iterator();
+            iterator.hasNext() ;
+            String id1 = it.next();
+            iterator.hasNext() ;
+            String id2 = it.next();
+            notificaStart(o1,id2);
+            notificaStart(o2,id1);
+        }
+        else if(started)
+        {
+            notificaAsteptare(client);
+        }
     }
 
     @Override
@@ -53,155 +116,9 @@ public class Service implements IService {
         return userRepository.exists(new User(username, parola));
     }
 
-
     @Override
     public synchronized User getUser(String username) {
         return userRepository.findOne(username);
     }
-//    @Override
-//    public synchronized List<ProbaDTO> getAllProba() {
-//        List<ProbaDTO> all = new LinkedList<>();
-//        probaRepository.findAll().forEach(e -> all.add(new ProbaDTO(e, inscriereRepository.getNrParticipantiProba(e.getId()))));
-//        System.out.println("Get all probe");
-//
-//        return all;
-//    }
-//
-//
-//    @Override
-//    public synchronized List<ParticipantProbeDTO> getParticipanti(Integer idProba) {
-//        List<ParticipantProbeDTO> all = new LinkedList<>();
-//        List<Proba> probe;
-//        for (model.Participant e : inscriereRepository.getParticipantiPtProba(idProba)) {
-//            probe = new ArrayList<>();
-//            for (Proba p : inscriereRepository.getProbePtParticipant(e.getId()))
-//                probe.add(p);
-//            all.add(new ParticipantProbeDTO(e, probe));
-//        }
-//        System.out.println("Get participanti");
-//        return all;
-//    }
-//
-//    @Override
-//    public synchronized void saveInscriere(String nume, Integer varsta, List<Proba> probe,boolean existent) throws InscriereServiceException {
-//        model.Participant p = null;
-//        if (existent == false && getParticipant(nume, varsta) == null) {
-//            Integer id;
-//            Random rand = new Random();
-//            do {
-//                id = rand.nextInt(200) + 1;
-//            } while (participantRepository.findOne(id.toString()) != null);
-//            p = new model.Participant(id.toString(), nume, varsta);
-//            try {
-//                participantRepository.save(p);
-//            } catch (ValidationException e) {
-//                throw new InscriereServiceException(e.getMessage());
-//            }
-//
-//        } else if (existent == true && getParticipant(nume, varsta) != null)
-//            p = getParticipant(nume, varsta);
-//        else if (existent == true && getParticipant(nume, varsta) == null)
-//            throw new InscriereServiceException("Participantul nu exista!");
-//
-//
-//        for (Proba pr : probe) {
-//            try {
-//                inscriereRepository.save(new Inscriere(p.getId(), pr.getId()));
-//                System.out.println("Adaugare inscriere");
-//
-//            } catch (ValidationException e) {
-//                throw new InscriereServiceException(e.getMessage());
-//            } finally {
-//                notifyInscriereAdded();
-//            }
-//        }
-//
-//    }
-//
-//
-//
-//
-//    public synchronized model.Participant getParticipant(String nume, Integer varsta) {
-//        return participantRepository.getParticipant(nume, varsta);
-//    }
-    /*private IParticipantRepository participantRepository;
-    private IProbaRepository probaRepository;
-    private IInscriereRepository inscriereRepository;
-    private repository.IUserRepository userRepository;
-    //private List<Observer<Inscriere>> inscriereObservers = new ArrayList<>();
 
-    public InscriereService(IParticipantRepository participantRepository, IProbaRepository probaRepository, IInscriereRepository inscriereRepository, repository.IUserRepository userRepository) {
-        this.participantRepository = participantRepository;
-        this.probaRepository = probaRepository;
-        this.inscriereRepository = inscriereRepository;
-        this.userRepository = userRepository;
-    }
-
-
-    public boolean login(String username, String parola) {
-        model.User user = new model.User(username, parola);
-        return userRepository.exists(user);
-    }
-
-    public List<Proba> getAllProba() {
-        List<Proba> all = new LinkedList<>();
-        probaRepository.findAll().forEach(e -> all.add(e));
-        return all;
-    }
-
-    public List<model.Participant> getAllParticipant() {
-        List<model.Participant> all = new LinkedList<>();
-        participantRepository.findAll().forEach(e -> all.add(e));
-        return all;
-    }
-
-    public Integer getNrParticipantiProba(Integer idproba) {
-        return inscriereRepository.getNrParticipantiProba(idproba);
-    }
-
-    public List<Proba> getProbeParticipant(String idParticipant) {
-        List<Proba> all = new LinkedList<>();
-        inscriereRepository.getProbePtParticipant(idParticipant).forEach(e -> all.add(e));
-        return all;
-    }
-
-    public List<model.Participant> getParticipanti(Integer idProba) {
-        List<model.Participant> all = new LinkedList<>();
-        inscriereRepository.getParticipantiPtProba(idProba).forEach(e -> all.add(e));
-        return all;
-    }
-
-    public void saveInscriere(String nume, Integer varsta, List<Proba> probe, boolean existent) throws ValidationException {
-        model.Participant p = null;
-        if (existent == false && getParticipant(nume, varsta) == null) {
-            Integer id;
-            Random rand = new Random();
-            do {
-                id = rand.nextInt(200) + 1;
-            } while (participantRepository.findOne(id.toString()) != null);
-            p = new model.Participant(id.toString(), nume, varsta);
-            participantRepository.save(p);
-
-        } else if (existent == true && getParticipant(nume, varsta) != null)
-            p = getParticipant(nume, varsta);
-        else if (existent == true && getParticipant(nume, varsta) == null)
-            throw new utils.RepositoryException("Participantul nu exista!");
-
-
-        for (Proba pr : probe) {
-            try {
-                inscriereRepository.save(new Inscriere(p.getId(), pr.getId()));
-
-            } catch (ValidationException e) {
-                //ShowMessage.showMessage(Alert.AlertType.ERROR, "Eroare", e.getMessage());
-            } finally {
-                //notifyObservers();
-            }
-        }
-
-
-    }
-    public model.Participant getParticipant(String nume, Integer varsta) {
-        return participantRepository.getParticipant(nume, varsta);
-    }*/
 }

@@ -43,6 +43,7 @@ public class UserDBRepository implements IUserRepository {
                 sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
             }
             generatedPassword = sb.toString();
+            System.out.println(generatedPassword);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -50,10 +51,12 @@ public class UserDBRepository implements IUserRepository {
             s.setString(1, u.getId());
             s.setString(2, generatedPassword);
             ResultSet resultSet = s.executeQuery();
-            resultSet.next();
-            if (resultSet.getInt("Nr") == 0)
-                return false;
-            return true;
+            if (resultSet.next()) {
+                if (resultSet.getInt("Nr") == 0)
+                    return false;
+                return true;
+            }
+            return false;
         } catch (SQLException e) {
             throw new RepositoryException(e.getMessage());
         }

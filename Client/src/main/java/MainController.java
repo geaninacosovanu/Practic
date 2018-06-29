@@ -1,9 +1,11 @@
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -14,48 +16,23 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class MainController extends UnicastRemoteObject  implements IObserver,Serializable {
-    private IService service;
-//    private ObservableList<ProbaDTO> modelProba = FXCollections.observableArrayList();
-    private User user;
-//    @FXML
-//    TableView<ProbaDTO> tableViewProba;
-//    @FXML
-//    TableColumn<Proba, String> tableColumnStil;
-//    @FXML
-//    TableColumn<Proba, Float> tableColumnDistanta;
-//    @FXML
-//    TableColumn<Proba, Integer> tableColumnNrParticipanti;
-//
-//    @FXML
-//    TableView<ParticipantProbeDTO> tableViewParticipant;
-//    @FXML
-//    TableColumn<model.Participant, String> tableColumnNume;
-//    @FXML
-//    TableColumn<model.Participant, Integer> tableColumnVarsta;
-//    @FXML
-//    TableColumn<model.Participant, String> tableColumnProbe;
-//    @FXML
-//    ListView<Proba> listViewProbe;
-//
-//    @FXML
-//    TextField textFieldNume;
-//    @FXML
-//    TextField textFieldVarsta;
-//    @FXML
-//    Button buttonInscriere;
-//
-//    @FXML
-//    CheckBox checkBoxParticipantExistent;
-
+public class MainController extends UnicastRemoteObject implements IObserver, Serializable {
+    @FXML
+    Button buttonStart;
     @FXML
     Button buttonLogout;
+    @FXML
+    Label labelId;
+    private IService service;
+    //    private ObservableList<ProbaDTO> modelProba = FXCollections.observableArrayList();
+    private User user;
+
 
     public MainController() throws RemoteException {
     }
 
-    public void setService(IService service,User user) {
-        this.user=user;
+    public void setService(IService service, User user) {
+        this.user = user;
         this.service = service;
 //        try {
 //            modelProba = FXCollections.observableArrayList(service.getAllProba());
@@ -81,9 +58,6 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
     @FXML
     public void initialize() {
-        initializeTableProba();
-        initializeTableParticipanti();
-
     }
 
     private void initializeTableParticipanti() {
@@ -104,11 +78,11 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 
     public void handleLogoutBotton(MouseEvent mouseEvent) {
         try {
-            service.logout(user,this);
+            service.logout(user, this);
             showLoginWindow(initLoginView());
             ((Node) (mouseEvent.getSource())).getScene().getWindow().hide();
         } catch (ServiceException e) {
-            ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare",e.getMessage());
+            ShowMessage.showMessage(Alert.AlertType.ERROR, "Eroare", e.getMessage());
         }
 
     }
@@ -171,5 +145,23 @@ public class MainController extends UnicastRemoteObject  implements IObserver,Se
 //                e.printStackTrace();
 //            }
 //        });
+    }
+
+    @Override
+    public void notificareAsteptare(String msg) throws ServiceException, RemoteException {
+        Platform.runLater(() -> {
+            ShowMessage.showMessage(Alert.AlertType.ERROR, "Erroare", msg);
+        });
+    }
+
+    @Override
+    public void notificareStart(String id) throws ServiceException, RemoteException {
+        Platform.runLater(() -> {
+            labelId.setText(id);
+        });
+    }
+
+    public void handleStart(MouseEvent mouseEvent) {
+        service.start(user, this);
     }
 }

@@ -42,12 +42,15 @@ public class LoginController extends UnicastRemoteObject implements  Serializabl
         String userName = textFieldUsername.getText();
         String parola = passwordFieldParola.getText();
         try {
+
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/MainView.fxml"));
             BorderPane root=loader.load();
             MainController ctr = loader.getController();
-            ctr.setService(service,service.getUser(userName));
-
+            try{
+            ctr.setService(service,service.getUser(userName));}catch (Exception e){
+                ShowMessage.showMessage(Alert.AlertType.ERROR,"Eroare","Username sau parola invalida!");
+            }
             if(service.login(userName,parola,ctr)){
                 Stage dialogStage = new Stage();
                 dialogStage.setTitle("Main");
