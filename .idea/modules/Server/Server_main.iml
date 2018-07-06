@@ -7,7 +7,7 @@
     <facet type="hibernate" name="Hibernate">
       <configuration>
         <datasource-map>
-          <unit-entry name="hibernate.cfg.xml" />
+          <unit-entry name="hibernate.cfg.xml" value="8361ac7b-92ef-44c7-97ce-3b4a0976924d" />
         </datasource-map>
         <naming-strategy-map />
         <deploymentDescriptor name="hibernate.cfg.xml" url="file://$MODULE_DIR$/../../../Server/src/main/resources/hibernate.cfg.xml" />
@@ -38,5 +38,6 @@
     <orderEntry type="library" name="Gradle: org.springframework:spring-core:5.0.4.RELEASE" level="project" />
     <orderEntry type="library" name="Gradle: com.sun.xml.bind:jaxb-core:2.3.0" level="project" />
     <orderEntry type="library" name="Gradle: javax.activation:activation:1.1.1" level="project" />
+    <orderEntry type="library" name="Hibernate 5.2.16-5.2.16" level="project" />
   </component>
 </module>

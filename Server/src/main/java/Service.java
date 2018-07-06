@@ -1,4 +1,8 @@
+import model.Joc;
+import model.JocUser;
 import model.User;
+import repository.IJocRepository;
+import repository.IJocUserRepository;
 import repository.IUserRepository;
 
 import java.rmi.RemoteException;
@@ -12,14 +16,19 @@ public class Service implements IService {
     String[] pozitii;
     Map<String, Integer> pozitiiCurente;
     private IUserRepository userRepository;
+    private IJocRepository jocRepository;
+    private IJocUserRepository jocUserRepository;
     private Map<String, IObserver> loggedClients;
     private Map<String, IObserver> players = new ConcurrentHashMap<>();
     private boolean started = false;
     private int nrJocuri;
+    private Map<String, List<Integer>> toatePozitiile;
 
-    public Service(IUserRepository userRepository) {
+    public Service(IUserRepository userRepository, IJocRepository jocRepository, IJocUserRepository jocUserRepository) {
         this.userRepository = userRepository;
-        loggedClients = new ConcurrentHashMap<>();
+        this.jocRepository = jocRepository;
+        this.jocUserRepository = jocUserRepository;
+        this.loggedClients = new ConcurrentHashMap<>();
     }
 
     private void notificaMutare(Integer p) {
@@ -103,6 +112,11 @@ public class Service implements IService {
             notificaStart(o1, id2);
             notificaStart(o2, id1);
             pozitiiCurente = new ConcurrentHashMap<>();
+            toatePozitiile = new ConcurrentHashMap<>();
+            List<Integer> poz=new ArrayList<>();
+            poz.add(-1);
+            toatePozitiile.put(id1,poz );
+            toatePozitiile.put(id2, poz);
             pozitiiCurente.put(id1, -1);
             pozitiiCurente.put(id2, -1);
             nrJocuri = 0;
@@ -113,30 +127,41 @@ public class Service implements IService {
 
     @Override
     public synchronized Integer addPozitie(User u, Integer nr, Integer curent) {
-        Integer p=null;
+        Integer p = null;
         if (nrJocuri < 6) {
             if (pozitii[nr + curent] == null) {
                 p = nr + curent;
-                pozitiiCurente.put(u.getId(), nr + curent);
                 pozitii[nr + curent] = u.getId();
             } else {
                 p = findPrimaLibera();
                 pozitii[p] = u.getId();
             }
+            pozitiiCurente.put(u.getId(), p);
+            toatePozitiile.get(u.getId()).add(p);
             notificaMutare(nr);
             nrJocuri++;
         }
-        if(nrJocuri==6){
-            int i=8;
-            String c=null;
-            while(i>=0) {
+        if (nrJocuri == 6) {
+            int i = 8;
+            String c = null;
+            while (i >= 0) {
                 if (pozitii[i] != null) {
                     c = pozitii[i];
                     i = -1;
                 } else
                     i--;
             }
-            notificaCastig(c);}
+            Joc joc = jocRepository.save(new Joc());
+            for (String usr : players.keySet()) {
+                String s="";
+                for (Integer poz:toatePozitiile.get(usr)){
+                    s=s+""+poz;
+                }
+                jocUserRepository.save(new JocUser(usr, joc.getId(),s,pozitiiCurente.get(usr)));
+            }
+            notificaCastig(c);
+
+        }
 
         return p;
 
@@ -149,7 +174,7 @@ public class Service implements IService {
                 System.out.println("Notifying client...");
                 try {
                     System.out.println("Notificare adaugata!");
-                    obs.notificareAsteptare("Juctot castigator "+c);
+                    obs.notificareAsteptare("Juctot castigator " + c);
                 } catch (ServiceException e) {
                     System.out.println(e.getMessage());
                 } catch (RemoteException e) {
